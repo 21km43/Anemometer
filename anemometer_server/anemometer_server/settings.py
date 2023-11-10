@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'data',
     'frontend',
     'rest_framework'
+    'data2',
 ]
 
 MIDDLEWARE = [
