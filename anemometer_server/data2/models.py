@@ -6,3 +6,4 @@ class Winddata(models.Model):
     WindSpeed=models.FloatField()
     
     Time=models.DateTimeField()
+    AID=models.IntegerField()
