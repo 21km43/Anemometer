@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters import rest_framework as filters
 
+from django.views.decorators.csrf import csrf_exempt
+
 import datetime,json
 
 from .models import Winddata
@@ -130,6 +132,27 @@ class DHCP(APIView):
 class test(APIView):
     def get(self,request):
         return Response([{"key":1,"data":2},{"key":2,"data":31}])
-    
+
+
+from django.http.response import JsonResponse
+@csrf_exempt
+def posttest(request):
+    if request.method == 'GET':
+            return Response({})
+
+    # JSON文字列
+    print(request.body)
+    datas = json.loads(request.body)
+
+    print("--受取り値--------------------------")
+    print(type(datas))
+    print(datas)
+
+    # requestには、param1,param2の変数がpostされたものとする
+    ret = {"data": "param1:" + datas["param1"] + ", param2:" + datas["param2"]}
+
+    # JSONに変換して戻す
+    return JsonResponse(ret)
+
 testjson={"key":1,"data":2}
 print(testjson)
