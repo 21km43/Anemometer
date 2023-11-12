@@ -18,9 +18,10 @@ class LatestData():
     Token=[]
 
     def __init__(self):#DBから過去データ抽出
-        print('init done')
+        print('latestdata init')
 
     def syntax_check(self,givendata):
+        print(type(givendata))
         data=json.loads(givendata)
         if 'WindSpeed' in data and 'Time' in data and 'AID' in data:
             return True
@@ -66,6 +67,9 @@ class LatestData():
         print('DHCP error')
 
 
+latestdata=LatestData()
+
+
 class WinddataFilter(filters.FilterSet):
     class Meta:
         model=Winddata
@@ -74,17 +78,24 @@ class WinddataFilter(filters.FilterSet):
 class WinddataAPIView(APIView):
 
     def post(self,request):
-        if not LatestData.syntax_check(request.data):
+        print('----------------------------')
+        print(str(request.body.decode('utf-8')))
+        print(type(json.loads(request.body)))
+        print('----------------------------')
+        if not latestdata.syntax_check(request.body):
             return HttpResponse("Syntax Error")
-        LatestData.updateLHWD(json.load(request.data))
-        LatestData.updateAnemometer(request.data)
+        print('syntax check done')
+        latestdata.updateLHWD(json.load(request.body))
+        print('update done')
+        latestdata.updateAnemometer(request.data)
+        print('update anemometer done')
         DataSerializer=UseWinddata(data=request.data)
         DataSerializer.is_valid(raise_exception=True)
         DataSerializer.save()
         return HttpResponse('good')
 
     def get(self,request):
-        LatestData.checkLHWD()
+        latestdata.checkLHWD()
         filterset=WinddataFilter(request.query_params,queryset=Winddata.objects.all())
         serializer=UseWinddata(instance=filterset.qs,many=True)
         return Response(serializer.data)
@@ -92,11 +103,11 @@ class WinddataAPIView(APIView):
  
 class LHWD(APIView):
     def get(self,request):
-        return Response(LatestData.LHWD)
+        return Response(latestdata.LHWD)
 
 class LD(APIView):
     def get(self,response):
-        data=LatestData.Anemometer
+        data=latestdata.Anemometer
         AIDset=set()
         for item in data:
             AIDset.add(item["AID"])
@@ -109,8 +120,16 @@ class LD(APIView):
 
 class anemometer(APIView):
     def get(self,request):
-        return Response(LatestData.Anemometer)
+        return Response(latestdata.Anemometer)
+    
+class DHCP(APIView):
+    def get(self,request):
+        return Response(latestdata.DHCP())
+
 
 class test(APIView):
     def get(self,request):
         return Response([{"key":1,"data":2},{"key":2,"data":31}])
+    
+testjson={"key":1,"data":2}
+print(testjson)

@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'data',
     'frontend',
-    'rest_framework'
+    'rest_framework',
     'data2',
 ]
 
