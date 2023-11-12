@@ -36,10 +36,14 @@ class LatestData():
     
     def updateAnemometer(self,givendata):
         AID=json.loads(givendata)['AID']
+        exist_anemometer=False
         for data in self.Anemometer:
             if data['AID']==AID:
+                exist_anemometer=True
                 data['Status']='Working'
                 data['LastUpdate']=datetime.now()
+        if not exist_anemometer:
+            self.Anemometer()
 
     def checkLHWD(self):
         rmlist=[]
@@ -84,12 +88,12 @@ class WinddataAPIView(APIView):
         print(str(request.body.decode('utf-8')))
         print(type(json.loads(request.body)))
         print('----------------------------')
-        if not latestdata.syntax_check(request.body):
-            return HttpResponse("Syntax Error")
+        #if not latestdata.syntax_check(request.body):
+        #    return HttpResponse("Syntax Error")
         print('syntax check done')
-        latestdata.updateLHWD(json.load(request.body))
+        latestdata.updateLHWD(request.body)
         print('update done')
-        latestdata.updateAnemometer(request.data)
+        #latestdata.updateAnemometer(request.data)
         print('update anemometer done')
         DataSerializer=UseWinddata(data=request.data)
         DataSerializer.is_valid(raise_exception=True)
