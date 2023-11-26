@@ -110,14 +110,23 @@ class LHWD(APIView):
 
 class LD(APIView):
     def get(self,response):
-        data=latestdata.Anemometer
         AIDset=set()
-        for item in data:
-            AIDset.add(item["AID"])
-        #あるAIDを持つ要素の中から時間が最大の要素を返す関数を実装する(5分経過したものは非対称)         
-               
-
-
+        LDlist=[]
+        for item in latestdata.Anemometer:
+            AIDset.add(item)
+        #あるAIDを持つ要素の中から時間が最大の要素を返す関数を実装する(1分経過したものは非対称)         
+        for aid in AIDset:
+            ld_aid=[]                         
+            #特定のAIDの物をリスとして準備
+            for item in latestdata.LHWD:
+                if item['AID']==aid:
+                    ld_aid.append(item)
+            ld_aid_last=ld_aid[0]
+            #リストの中から最新の物をld_aid_lastとして取得
+            for item in ld_aid:
+                if ld_aid_last['Time']<item['Time']:
+                    ld_aid_last=item
+            LDlist.append(ld_aid_last)
 
         return HttpResponse("good")
 
