@@ -16,7 +16,7 @@ from .serializers import UseData
 
 class LatestData():
     LHWD=[]#WindSpeed:,Time:,AID
-    Anemometer=[]#AID,Status,LatestUpdate
+    Anemometer=[]#AID,Status,LastUpdate
     Token=[]
 
     def __init__(self):#DBから過去データ抽出
@@ -38,17 +38,17 @@ class LatestData():
         AID=json.loads(givendata)['AID']
         exist_anemometer=False
         for data in self.Anemometer:
-            if data['AID']==AID:
+            if str(data['AID'])==str(AID):
                 exist_anemometer=True
                 data['Status']='Working'
-                data['LastUpdate']=datetime.now()
+                data['LastUpdate']=str(datetime.datetime.now())
         if not exist_anemometer:
-            self.Anemometer()
+            self.Anemometer.append({"AID":AID,"Status":"Working","LastUpdate":str(datetime.datetime.now())})
 
     def checkLHWD(self):
         rmlist=[]
         for data in self.LHWD:
-            if datetime.datetime.strptime(data['time'])< datetime.now()-datetime.timedelta(hours=1):
+            if datetime.datetime.strptime(data['time'],'%Y-%m-%d %H:%M:%S.%f')< datetime.datetime.now()-datetime.timedelta(hours=1):
                 rmlist.append(data)
         for data in rmlist:
             self.LHWD.remove(data)
@@ -56,9 +56,9 @@ class LatestData():
     def checkAnemometer(self):
         rmlist=[]
         for data in self.Anemometer:
-            if datetime.datetime.strptime(data['LastUpdate'])<datetime.now()-datetime.timedelta(seconds='15'):
-                self.Anemometer[self.Anemometer.index(data)]['status']='unstable'
-            if datetime.datetime.strptime(data['LastUpdate'])<datetime.now()-datetime.timedelta(seconds='60'):
+            if datetime.datetime.strptime(data['LastUpdate'],'%Y-%m-%d %H:%M:%S.%f')<(datetime.datetime.now()-datetime.timedelta(seconds=15)):
+                self.Anemometer[self.Anemometer.index(data)]['Status']='Unstable'
+            if datetime.datetime.strptime(data['LastUpdate'],'%Y-%m-%d %H:%M:%S.%f')<(datetime.datetime.now()-datetime.timedelta(seconds=60)):
                 rmlist.append(data)
         for data in rmlist:
             self.Anemometer.remove(data)
@@ -87,9 +87,10 @@ class WinddataAPIView(APIView):
         if not latestdata.syntax_check(request.body):
             return HttpResponse("Syntax Error")
         print('syntax check done')
+        print(request.body)
         latestdata.updateLHWD(request.body)
         print('update done')
-        latestdata.updateAnemometer(request.data)
+        latestdata.updateAnemometer(request.body)
         print('update anemometer done')
         DataSerializer=UseData(data=request.data)
         DataSerializer.is_valid(raise_exception=True)
@@ -113,7 +114,7 @@ class LD(APIView):
         AIDset=set()
         for item in data:
             AIDset.add(item["AID"])
-        #あるAIDを持つ要素の中から時間が最大の要素を返す関数を実装する         
+        #あるAIDを持つ要素の中から時間が最大の要素を返す関数を実装する(5分経過したものは非対称)         
                
 
 
@@ -122,10 +123,12 @@ class LD(APIView):
 
 class anemometer(APIView):
     def get(self,request):
+        latestdata.checkAnemometer()    
         return Response(latestdata.Anemometer)
     
 class DHCP(APIView):
     def get(self,request):
+        latestdata.checkAnemometer()
         return Response(latestdata.DHCP())
 
 
