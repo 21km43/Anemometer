@@ -11,8 +11,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 import datetime,json
 
-from .models import Winddata
-from .serializers import UseWinddata
+from .models import Data
+from .serializers import UseData
 
 class LatestData():
     LHWD=[]#WindSpeed:,Time:,AID
@@ -78,16 +78,12 @@ latestdata=LatestData()
 
 class WinddataFilter(filters.FilterSet):
     class Meta:
-        model=Winddata
+        model=Data
         fields='__all__'
 
 class WinddataAPIView(APIView):
 
     def post(self,request):
-        print('----------------------------')
-        print(str(request.body.decode('utf-8')))
-        print(type(json.loads(request.body)))
-        print('----------------------------')
         #if not latestdata.syntax_check(request.body):
         #    return HttpResponse("Syntax Error")
         print('syntax check done')
@@ -95,15 +91,15 @@ class WinddataAPIView(APIView):
         print('update done')
         #latestdata.updateAnemometer(request.data)
         print('update anemometer done')
-        DataSerializer=UseWinddata(data=request.data)
+        DataSerializer=UseData(data=request.data)
         DataSerializer.is_valid(raise_exception=True)
         DataSerializer.save()
         return HttpResponse('good')
 
     def get(self,request):
         latestdata.checkLHWD()
-        filterset=WinddataFilter(request.query_params,queryset=Winddata.objects.all())
-        serializer=UseWinddata(instance=filterset.qs,many=True)
+        filterset=WinddataFilter(request.query_params,queryset=Data.objects.all())
+        serializer=UseData(instance=filterset.qs,many=True)
         return Response(serializer.data)
 
  
@@ -157,6 +153,3 @@ def posttest(request):
 
     # JSONに変換して戻す
     return JsonResponse(ret)
-
-testjson={"key":1,"data":2}
-print(testjson)

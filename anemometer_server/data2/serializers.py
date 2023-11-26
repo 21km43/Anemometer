@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import Winddata
+from .models import Data
 
-class UseWinddata(serializers.ModelSerializer):
+class UseData(serializers.ModelSerializer):
     class Meta:
-        model=Winddata
+        model=Data
         fields='__all__'
