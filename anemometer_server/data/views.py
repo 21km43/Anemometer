@@ -2,107 +2,173 @@ from django.shortcuts import render
 
 # Create your views here.
 
+from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters import rest_framework as filters
-from django.utils import timezone
+
+from django.views.decorators.csrf import csrf_exempt
+
+import datetime,json
+
+from .models import Data
+from .serializers import UseData
+
+class LatestData():
+    LHWD=[]#WindSpeed:,Time:,AID
+    Anemometer=[]#AID,Status,LastUpdate
+    Token=[]
+
+    def __init__(self):#DBから過去データ抽出
+        print('latestdata init')
+
+    def syntax_check(self,givendata):
+        print(type(givendata))
+        data=json.loads(givendata)
+        if 'WindSpeed' in data and 'Time' in data and 'AID' in data:
+            return True
+        else:
+            return False
+
+    def updateLHWD(self,givendata): 
+        data=json.loads(givendata)
+        self.LHWD.append(data)
+    
+    def updateAnemometer(self,givendata):
+        AID=json.loads(givendata)['AID']
+        exist_anemometer=False
+        for data in self.Anemometer:
+            if str(data['AID'])==str(AID):
+                exist_anemometer=True
+                data['Status']='Working'
+                data['LastUpdate']=str(datetime.datetime.now())
+        if not exist_anemometer:
+            self.Anemometer.append({"AID":AID,"Status":"Working","LastUpdate":str(datetime.datetime.now())})
+
+    def checkLHWD(self):
+        rmlist=[]
+        for data in self.LHWD:
+            if datetime.datetime.strptime(data['time'],'%Y-%m-%d %H:%M:%S.%f')< datetime.datetime.now()-datetime.timedelta(hours=1):
+                rmlist.append(data)
+        for data in rmlist:
+            self.LHWD.remove(data)
+
+    def checkAnemometer(self):
+        rmlist=[]
+        for data in self.Anemometer:
+            if datetime.datetime.strptime(data['LastUpdate'],'%Y-%m-%d %H:%M:%S.%f')<(datetime.datetime.now()-datetime.timedelta(seconds=15)):
+                self.Anemometer[self.Anemometer.index(data)]['Status']='Unstable'
+            if datetime.datetime.strptime(data['LastUpdate'],'%Y-%m-%d %H:%M:%S.%f')<(datetime.datetime.now()-datetime.timedelta(seconds=60)):
+                rmlist.append(data)
+        for data in rmlist:
+            self.Anemometer.remove(data)
+
+    def DHCP(self):
+        for i in range(100):
+            flag=True
+            for data in self.Anemometer:
+                if data['AID']==str(i+1):
+                    flag=False
+            if flag:return {"AID":i+1}
+        print('DHCP error')
 
 
-from .serializers import UseWinddata,UseAnemometor
-from .models import Winddata,Anemometor
+latestdata=LatestData()
 
-def FlagUpdater(getAID=0,update=False):
-    #最新のデータにフラグを立てる。(LDは風速計ごとに一つ立てる)
-    #データアップデートがあれば、前回データをLD=Falseにし、anemometor.status=workingにする
-    if update :
-        OutTimeLD=Winddata.objects.filter(LD=True,AID=getAID)
-        OutTimeLD.update(LD=False)    
-        try:
-            anemometor=Anemometor.objects.get(AID=getAID)
-            anemometor.Status='Working'
-            anemometor.LastUpdate=timezone.now()
-        except Anemometor.DoesNotExist:
-            anemometor=Anemometor(AID=1,Status='Working',LastUpdate=timezone.now())
-        anemometor.save()
-    #Anemometorがworking or unstableで無ければLD=Falseにする
-    OutAnemoLD=Winddata.objects.filter(LD=True)
-    for record in OutAnemoLD:
-        if not Anemometor.objects.filter(AID=record.AID).exists():
-            anemometor=Winddata.objects.get(AID=record.AID,LD=True)
-            anemometor.LD=False
-            anemometor.save()
-    #LHWD=TrueでなければLDもLD=Falseとする
-    OutLHWDLD=Winddata.objects.filter(LD=True,LHWD=False)
-    OutLHWDLD.update(LD=False)
-
-    #latest one hour wind dataのフラグ更新
-    OutTimeLHWD=Winddata.objects.filter(LHWD=True,Time__lte=timezone.now()-timezone.timedelta(hours=1))
-    OutTimeLHWD.update(LHWD=False)
-    InTimeLHWD=Winddata.objects.filter(LHWD=False,Time__gt=timezone.now()-timezone.timedelta(hours=1))
-    InTimeLHWD.update(LHWD=True)
-
-
-def avarage():
-    ROWData=Winddata.objects.filter(LHWD=True)
-    total_number=100
-    part_number=int(ROWData.count()/100)
-    windspeed_array=[]
-    for i in range(total_number):
-        avarage_speed=0
-        #for j in range(part_number-2):
-            #avarage_speed+=ROWData[i*100+j].WindSpeed
-        avarage_speed/=part_number            
-        windspeed_array.append({'WindSpeed':avarage_speed,'Time':ROWData[i*100].Time})
-    return windspeed_array
-
-
-
-class WinddataAPIView(APIView):
-    def post(self, request, *args, **kwargs):
-        DataSerializer = UseWinddata(data=request.data)
-        DataSerializer.is_valid(raise_exception=True)
-        FlagUpdater(DataSerializer.validated_data['AID'],True)     
-        DataSerializer.save()
-        return Response("saved")
 
 class WinddataFilter(filters.FilterSet):
     class Meta:
-        model = Winddata
-        fields = '__all__'
+        model=Data
+        fields='__all__'
 
-class listdata(APIView):
-    def get(self, request):
-        FlagUpdater(update=False)
-        filterset=WinddataFilter(request.query_params, queryset=Winddata.objects.all())
-        serializer = UseWinddata(instance=filterset.qs, many=True)
-        #avarage()
-        return Response(serializer.data)
+class WinddataAPIView(APIView):
 
-class AnemometorFilter(filters.FilterSet):
-    class Meta:
-        model = Anemometor
-        fields = '__all__'
+    def post(self,request):
+        if not latestdata.syntax_check(request.body):
+            return HttpResponse("Syntax Error")
+        print('syntax check done')
+        print(request.body)
+        latestdata.updateLHWD(request.body)
+        print('update done')
+        latestdata.updateAnemometer(request.body)
+        print('update anemometer done')
+        DataSerializer=UseData(data=request.data)
+        DataSerializer.is_valid(raise_exception=True)
+        DataSerializer.save()
+        return HttpResponse('good')
 
-def AnemometorFlagUpdater():
-    UnstableAnemometor=Anemometor.objects.filter(LastUpdate__lte=timezone.now()-timezone.timedelta(seconds=30))
-    UnstableAnemometor.update(Status='Unstable')
-    StoppingAnemometor=Anemometor.objects.filter(LastUpdate__lte=timezone.now()-timezone.timedelta(minutes=3))
-    StoppingAnemometor.delete()
-
-    return True
-
-class AnemometorAIPView(APIView):
     def get(self,request):
-        AnemometorFlagUpdater()
-        filterset=AnemometorFilter(request.query_params, queryset=Anemometor.objects.all())
-        serializer=UseAnemometor(instance=filterset.qs,many=True)
+        latestdata.checkLHWD()
+        filterset=WinddataFilter(request.query_params,queryset=Data.objects.all())
+        serializer=UseData(instance=filterset.qs,many=True)
         return Response(serializer.data)
 
+ 
+class LHWD(APIView):
+    def get(self,request):
+        return Response(latestdata.LHWD)
+
+class LD(APIView):
+    def get(self,response):
+        AIDset=[]
+        LDlist=[]
+        for item in latestdata.Anemometer:
+            AIDset.append(item['AID'])
+        #あるAIDを持つ要素の中から時間が最大の要素を返す関数を実装する(1分経過したものは非対称)         
+        for aid in AIDset:
+            ld_aid=[]                         
+            #特定のAIDの物をリスとして準備
+            for item in latestdata.LHWD:
+                if item['AID']==aid:
+                    ld_aid.append(item)
+            ld_aid_last=ld_aid[0]
+            #リストの中から最新の物をld_aid_lastとして取得(1分経過は除外)
+            for item in ld_aid:
+                if datetime.datetime.strptime(ld_aid_last['Time'],'%Y-%m-%d %H:%M:%S.%f')<datetime.datetime.strptime(item['Time'],'%Y-%m-%d %H:%M:%S.%f') and datetime.datetime.strptime(ld_aid_last['Time'],'%Y-%m-%d %H:%M:%S.%f')>(datetime.datetime.now()-datetime.timedelta(seconds=120)):
+                    ld_aid_last=item
+            LDlist.append(ld_aid_last)
+        return Response(LDlist)
+
+class anemometer(APIView):
+    def get(self,request):
+        latestdata.checkAnemometer()    
+        return Response(latestdata.Anemometer)
+    
 class DHCP(APIView):
     def get(self,request):
-        for i in range(100):
-            try:Anemometor.objects.get(AID=i+1)
-            except Anemometor.DoesNotExist:
-                return Response(i+1)
-        return False
+        latestdata.checkAnemometer()
+        return Response(latestdata.DHCP())
 
+
+class test(APIView):
+    def get(self,request):
+        return Response([{"key":1,"data":2},{"key":2,"data":31}])
+
+
+
+
+
+
+
+
+
+
+from django.http.response import JsonResponse
+@csrf_exempt
+def posttest(request):
+    if request.method == 'GET':
+            return Response({})
+
+    # JSON文字列
+    print(request.body)
+    datas = json.loads(request.body)
+
+    print("--受取り値--------------------------")
+    print(type(datas))
+    print(datas)
+
+    # requestには、param1,param2の変数がpostされたものとする
+    ret = {"data": "param1:" + datas["param1"] + ", param2:" + datas["param2"]}
+
+    # JSONに変換して戻す
+    return JsonResponse(ret)

@@ -2,13 +2,8 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import Winddata,Anemometor
+from .models import Data
 
-@admin.register(Winddata)
+@admin.register(Data)
 class Winddata(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Anemometor)
-class Anemometor(admin.ModelAdmin):
     pass

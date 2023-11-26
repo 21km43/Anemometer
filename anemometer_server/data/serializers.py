@@ -1,12 +1,7 @@
 from rest_framework import serializers
-from .models import Winddata, Anemometor
+from .models import Data
 
-class UseWinddata(serializers.ModelSerializer):
+class UseData(serializers.ModelSerializer):
     class Meta:
-        model=Winddata
-        fields = '__all__'
-
-class UseAnemometor(serializers.ModelSerializer):
-    class Meta:
-        model = Anemometor
-        fields = '__all__'
+        model=Data
+        fields='__all__'
