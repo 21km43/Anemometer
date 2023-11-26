@@ -30,7 +30,7 @@ class LatestData():
         else:
             return False
 
-    def updateLHWD(self,givendata):
+    def updateLHWD(self,givendata): 
         data=json.loads(givendata)
         self.LHWD.append(data)
     
@@ -84,12 +84,12 @@ class WinddataFilter(filters.FilterSet):
 class WinddataAPIView(APIView):
 
     def post(self,request):
-        #if not latestdata.syntax_check(request.body):
-        #    return HttpResponse("Syntax Error")
+        if not latestdata.syntax_check(request.body):
+            return HttpResponse("Syntax Error")
         print('syntax check done')
         latestdata.updateLHWD(request.body)
         print('update done')
-        #latestdata.updateAnemometer(request.data)
+        latestdata.updateAnemometer(request.data)
         print('update anemometer done')
         DataSerializer=UseData(data=request.data)
         DataSerializer.is_valid(raise_exception=True)
@@ -132,6 +132,14 @@ class DHCP(APIView):
 class test(APIView):
     def get(self,request):
         return Response([{"key":1,"data":2},{"key":2,"data":31}])
+
+
+
+
+
+
+
+
 
 
 from django.http.response import JsonResponse
