@@ -7,6 +7,7 @@ urlpatterns=[
     path("posttest/",views.posttest),
     path("create/",views.WinddataAPIView.as_view()),
     path("LHWD/",views.LHWD.as_view()),
+    path("LD/",views.LD.as_view()),
     path("Anemometer",views.anemometer.as_view()),  
     path("DHCP/",views.DHCP.as_view()),
 ]

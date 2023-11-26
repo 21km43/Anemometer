@@ -69,7 +69,7 @@ class LatestData():
             for data in self.Anemometer:
                 if data['AID']==str(i+1):
                     flag=False
-            if flag:return i+1
+            if flag:return {"AID":i+1}
         print('DHCP error')
 
 
@@ -110,10 +110,10 @@ class LHWD(APIView):
 
 class LD(APIView):
     def get(self,response):
-        AIDset=set()
+        AIDset=[]
         LDlist=[]
         for item in latestdata.Anemometer:
-            AIDset.add(item)
+            AIDset.append(item['AID'])
         #あるAIDを持つ要素の中から時間が最大の要素を返す関数を実装する(1分経過したものは非対称)         
         for aid in AIDset:
             ld_aid=[]                         
@@ -122,13 +122,12 @@ class LD(APIView):
                 if item['AID']==aid:
                     ld_aid.append(item)
             ld_aid_last=ld_aid[0]
-            #リストの中から最新の物をld_aid_lastとして取得
+            #リストの中から最新の物をld_aid_lastとして取得(1分経過は除外)
             for item in ld_aid:
-                if ld_aid_last['Time']<item['Time']:
+                if datetime.datetime.strptime(ld_aid_last['Time'],'%Y-%m-%d %H:%M:%S.%f')<datetime.datetime.strptime(item['Time'],'%Y-%m-%d %H:%M:%S.%f') and datetime.datetime.strptime(ld_aid_last['Time'],'%Y-%m-%d %H:%M:%S.%f')>(datetime.datetime.now()-datetime.timedelta(seconds=120)):
                     ld_aid_last=item
             LDlist.append(ld_aid_last)
-
-        return HttpResponse("good")
+        return Response(LDlist)
 
 class anemometer(APIView):
     def get(self,request):
