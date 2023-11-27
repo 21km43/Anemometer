@@ -14,12 +14,18 @@ import datetime,json,random
 from .models import Data
 from .serializers import UseData
 
+#TZ = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
+
+
 class LatestData():
     LHWD=[]#WindSpeed:,Time:,AID
     Anemometer=[]#AID,Status,LastUpdate
     EmncriptedToken=[]
 
     def __init__(self):#DBから過去データ抽出
+        LHWD_query_set=Data.objects.all()
+        self.LHWD=list(LHWD_query_set.values())
+        self.checkLHWD()
         print('latestdata init')
 
     def syntax_check(self,givendata):
@@ -31,6 +37,7 @@ class LatestData():
 
     def updateLHWD(self,givendata): 
         data=json.loads(givendata)
+        data={"WindSpeed":data["WindSpeed"],"Time":datetime.datetime.strptime(data["Time"],"%Y-%m-%d %H:%M:%S.%f"),"AID":data["AID"]}
         self.LHWD.append(data)
     
     def updateAnemometer(self,givendata):
@@ -47,7 +54,7 @@ class LatestData():
     def checkLHWD(self):
         rmlist=[]
         for data in self.LHWD:
-            if datetime.datetime.strptime(data['time'],'%Y-%m-%d %H:%M:%S.%f')< datetime.datetime.now()-datetime.timedelta(hours=1):
+            if data['Time']<(datetime.datetime.now()-datetime.timedelta(hours=1)):
                 rmlist.append(data)
         for data in rmlist:
             self.LHWD.remove(data)
@@ -114,6 +121,7 @@ class WinddataAPIView(APIView):
  
 class LHWD(APIView):
     def get(self,request):
+        latestdata.checkLHWD()
         return Response(latestdata.LHWD)
 
 class LD(APIView):
@@ -146,6 +154,11 @@ class DHCP(APIView):
     def get(self,request):
         latestdata.checkAnemometer()
         return Response(latestdata.DHCP())
+    
+
+class Token(APIView):
+    def get(self,request):
+        return Response(json.dumps({"Token":latestdata.createToken()}))
 
 
 class test(APIView):
