@@ -58,7 +58,7 @@ class LatestData():
                 rmlist.append(data)
         for data in rmlist:
             self.LHWD.remove(data)
-
+    
     def checkAnemometer(self):
         rmlist=[]
         for data in self.Anemometer:
