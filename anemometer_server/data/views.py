@@ -9,7 +9,7 @@ from django_filters import rest_framework as filters
 
 from django.views.decorators.csrf import csrf_exempt
 
-import datetime,json
+import datetime,json,random
 
 from .models import Data
 from .serializers import UseData
@@ -17,7 +17,7 @@ from .serializers import UseData
 class LatestData():
     LHWD=[]#WindSpeed:,Time:,AID
     Anemometer=[]#AID,Status,LastUpdate
-    Token=[]
+    EmncriptedToken=[]
 
     def __init__(self):#DBから過去データ抽出
         print('latestdata init')
@@ -70,6 +70,19 @@ class LatestData():
                     flag=False
             if flag:return {"AID":i+1}
         print('DHCP error')
+
+    def createToken(self):
+        Token=random.randint(0,100000)
+        self.EmncriptedToken.append(Token+1)
+        return Token
+
+    def CAuth(self,EnToken):
+        auth=False
+        for item in self.EmncriptedToken:
+            if item==EnToken:
+                auth=True
+        self.EmncriptedToken.remove(EnToken)
+        return auth
 
 
 latestdata=LatestData()
