@@ -23,7 +23,6 @@ class LatestData():
         print('latestdata init')
 
     def syntax_check(self,givendata):
-        print(type(givendata))
         data=json.loads(givendata)
         if 'WindSpeed' in data and 'Time' in data and 'AID' in data:
             return True
@@ -86,12 +85,8 @@ class WinddataAPIView(APIView):
     def post(self,request):
         if not latestdata.syntax_check(request.body):
             return HttpResponse("Syntax Error")
-        print('syntax check done')
-        print(request.body)
         latestdata.updateLHWD(request.body)
-        print('update done')
         latestdata.updateAnemometer(request.body)
-        print('update anemometer done')
         DataSerializer=UseData(data=request.data)
         DataSerializer.is_valid(raise_exception=True)
         DataSerializer.save()
