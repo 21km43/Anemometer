@@ -22,7 +22,7 @@ class LatestData():
     Anemometer=[]#AID,Status,LastUpdate(datetime型)
     EmncriptedToken=[]
 
-    def __init__(self):#DBから過去データ抽出
+    def DataInit(self):#DBから過去データ抽出
         LHWD_query_set=Data.objects.all()
         self.LHWD=list(LHWD_query_set.values())
         self.checkLHWD()
@@ -92,7 +92,7 @@ class LatestData():
         return auth
 
 
-latestdata=LatestData()
+latestdata=LatestData() 
 
 
 class WinddataFilter(filters.FilterSet):
