@@ -18,8 +18,8 @@ from .serializers import UseData
 
 
 class LatestData():
-    LHWD=[]#WindSpeed:,Time:,AID
-    Anemometer=[]#AID,Status,LastUpdate
+    LHWD=[]#WindSpeed:,Time:(datetime型),AID
+    Anemometer=[]#AID,Status,LastUpdate(datetime型)
     EmncriptedToken=[]
 
     def __init__(self):#DBから過去データ抽出
@@ -140,7 +140,7 @@ class LD(APIView):
             ld_aid_last=ld_aid[0]
             #リストの中から最新の物をld_aid_lastとして取得(1分経過は除外)
             for item in ld_aid:
-                if datetime.datetime.strptime(ld_aid_last['Time'],'%Y-%m-%d %H:%M:%S.%f')<datetime.datetime.strptime(item['Time'],'%Y-%m-%d %H:%M:%S.%f') and datetime.datetime.strptime(ld_aid_last['Time'],'%Y-%m-%d %H:%M:%S.%f')>(datetime.datetime.now()-datetime.timedelta(seconds=120)):
+                if ld_aid_last['Time']<item['Time'] and ld_aid_last['Time']>(datetime.datetime.now()-datetime.timedelta(seconds=120)):
                     ld_aid_last=item
             LDlist.append(ld_aid_last)
         return Response(LDlist)
