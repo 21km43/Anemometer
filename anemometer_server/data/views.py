@@ -9,7 +9,7 @@ from django_filters import rest_framework as filters
 
 from django.views.decorators.csrf import csrf_exempt
 
-import datetime,json,random
+import datetime,json,random,hashlib
 
 from .models import Data
 from .serializers import UseData
@@ -20,6 +20,7 @@ from .serializers import UseData
 class LatestData():
     LHWD=[]#WindSpeed:,Time:(datetime型),AID
     Anemometer=[]#AID,Status,LastUpdate(datetime型)
+    allKeys=[123,456,789]
     EmncriptedToken=[]
 
     def DataInit(self):#DBから過去データ抽出
@@ -80,15 +81,23 @@ class LatestData():
 
     def createToken(self):
         Token=random.randint(0,100000)
-        self.EmncriptedToken.append(Token+1)
+        et=[]
+        for key in self.allKeys:
+            et.append(hashlib.sha256((str(Token)+str(key)).encode()).hexdigest())
+        self.EmncriptedToken.append(et)
+        print(self.EmncriptedToken)
         return Token
 
-    def CAuth(self,EnToken):
+    def auth(self,EnToken):
         auth=False
-        for item in self.EmncriptedToken:
-            if item==EnToken:
-                auth=True
-        self.EmncriptedToken.remove(EnToken)
+        for i in range(len(self.EmncriptedToken)):
+            for et in self.EmncriptedToken[i]:
+                print(et," ",EnToken,"does not match")
+                if et==EnToken:
+                    auth=True
+                    tokenid=i
+        if(auth):self.EmncriptedToken.remove(self.EmncriptedToken[tokenid])
+        print(self.EmncriptedToken)
         return auth
 
 
@@ -164,14 +173,13 @@ class Token(APIView):
 
 
 class test(APIView):
+    def post(self,request):
+        print(request.body.decode('utf-8'))
+        return Response(latestdata.auth(request.body.decode('utf-8')))
+
     def get(self,request):
-        return Response([{"key":1,"data":2},{"key":2,"data":31}])
-
-
-
-
-
-
+        print(hashlib.sha256(("1234abcd").encode()).hexdigest())
+        return HttpResponse('good')
 
 
 
