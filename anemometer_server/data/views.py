@@ -137,12 +137,14 @@ class LD(APIView):
             for item in latestdata.LHWD:
                 if item['AID']==aid:
                     ld_aid.append(item)
-            ld_aid_last=ld_aid[0]
             #リストの中から最新の物をld_aid_lastとして取得(1分経過は除外)
+            ld_aid_last=ld_aid[0]
+            is_there_datas=False
             for item in ld_aid:
                 if ld_aid_last['Time']<item['Time'] and ld_aid_last['Time']>(datetime.datetime.now()-datetime.timedelta(seconds=120)):
                     ld_aid_last=item
-            LDlist.append(ld_aid_last)
+                    is_there_datas=True
+            if (is_there_datas):LDlist.append(ld_aid_last)
         return Response(LDlist)
 
 class anemometer(APIView):
