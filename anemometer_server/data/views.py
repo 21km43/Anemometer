@@ -31,7 +31,7 @@ class LatestData():
 
     def syntax_check(self,givendata):
         data=json.loads(givendata)
-        if 'WindSpeed' in data and 'Time' in data and 'AID' in data:
+        if 'WindSpeed' in data and 'Time' in data and 'AID' in data and 'EmcriptedToken' in data:
             return True
         else:
             return False
@@ -114,6 +114,8 @@ class WinddataAPIView(APIView):
     def post(self,request):
         if not latestdata.syntax_check(request.body):
             return HttpResponse("Syntax Error")
+        if not latestdata.auth(json.loads(request.body.decode('utf-8'))['EmcriptedToken']):
+            return HttpResponse("Authentication Error")
         latestdata.updateLHWD(request.body)
         latestdata.updateAnemometer(request.body)
         DataSerializer=UseData(data=request.data)
@@ -169,7 +171,7 @@ class DHCP(APIView):
 
 class Token(APIView):
     def get(self,request):
-        return Response(json.dumps({"Token":latestdata.createToken()}))
+        return Response(json.dumps({"Token":str(latestdata.createToken())}))
 
 
 class test(APIView):
@@ -177,7 +179,7 @@ class test(APIView):
         print(request.body.decode('utf-8'))
         return Response(latestdata.auth(request.body.decode('utf-8')))
 
-    def get(self,request):
+    def get(self,request):  
         print(hashlib.sha256(("1234abcd").encode()).hexdigest())
         return HttpResponse('good')
 
