@@ -85,19 +85,19 @@ class LatestData():
         for key in self.allKeys:
             et.append(hashlib.sha256((str(Token)+str(key)).encode()).hexdigest())
         self.EmncriptedToken.append(et)
-        print(self.EmncriptedToken)
+        #print(self.EmncriptedToken)
         return Token
 
     def auth(self,EnToken):
         auth=False
         for i in range(len(self.EmncriptedToken)):
             for et in self.EmncriptedToken[i]:
-                print(et," ",EnToken,"does not match")
+                #print(et," ",EnToken,"does not match")
                 if et==EnToken:
                     auth=True
                     tokenid=i
         if(auth):self.EmncriptedToken.remove(self.EmncriptedToken[tokenid])
-        print(self.EmncriptedToken)
+        #print(self.EmncriptedToken)
         return auth
 
 
@@ -152,7 +152,8 @@ class LD(APIView):
             ld_aid_last=ld_aid[0]
             is_there_datas=False
             for item in ld_aid:
-                if ld_aid_last['Time']<item['Time'] and ld_aid_last['Time']>(datetime.datetime.now()-datetime.timedelta(seconds=120)):
+                #最大値を見つける
+                if ld_aid_last['Time']<item['Time'] and item['Time']>(datetime.datetime.now()-datetime.timedelta(seconds=120)):
                     ld_aid_last=item
                     is_there_datas=True
             if (is_there_datas):LDlist.append(ld_aid_last)
@@ -176,11 +177,11 @@ class Token(APIView):
 
 class test(APIView):
     def post(self,request):
-        print(request.body.decode('utf-8'))
+        #print(request.body.decode('utf-8'))
         return Response(latestdata.auth(request.body.decode('utf-8')))
 
     def get(self,request):  
-        print(hashlib.sha256(("1234abcd").encode()).hexdigest())
+        #print(hashlib.sha256(("1234abcd").encode()).hexdigest())
         return HttpResponse('good')
 
 
