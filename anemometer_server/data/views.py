@@ -105,6 +105,7 @@ latestdata=LatestData()
 
 
 class WinddataFilter(filters.FilterSet):
+    times=filters.DateTimeFilter()
     class Meta:
         model=Data
         fields='__all__'
@@ -129,6 +130,13 @@ class WinddataAPIView(APIView):
         serializer=UseData(instance=filterset.qs,many=True)
         return Response(serializer.data)
 
+
+class FWD(APIView):
+    # filterd wind data
+    def get(self,request):
+        qs=request.query_params
+        print(qs) 
+        return HttpResponse("good")
  
 class LHWD(APIView):
     def get(self,request):

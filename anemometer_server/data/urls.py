@@ -3,7 +3,7 @@ from . import views
 from .views import posttest
 
 urlpatterns=[
-    path("test/",views.test.as_view()),
+    path("test/",views.FWD.as_view()),
     path("posttest/",views.posttest),
     path("create/",views.WinddataAPIView.as_view()),
     path("LHWD/",views.LHWD.as_view()),
