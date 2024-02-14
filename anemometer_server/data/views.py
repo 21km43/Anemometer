@@ -135,8 +135,17 @@ class FWD(APIView):
     # filterd wind data
     def get(self,request):
         qs=request.query_params
-        print(qs) 
-        return HttpResponse("good")
+        try:
+            datetime_rangea_split=qs["datetime_range"].split(',')
+            print(datetime_rangea_split)
+            dt_form="%Y-%m-%dT%H:%M:%S"
+            start_date=datetime.datetime.strptime(datetime_rangea_split[0],dt_form)
+            end_date=datetime.datetime.strptime(datetime_rangea_split[1],dt_form)
+            print("start:",start_date,"end:",end_date)
+            row_objects=list(Data.objects.filter(Time__range=(start_date,end_date)).values())
+            return Response(row_objects)
+        except ValueError:
+            return HttpResponse("error")
  
 class LHWD(APIView):
     def get(self,request):
