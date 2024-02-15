@@ -124,18 +124,21 @@ class WinddataAPIView(APIView):
         DataSerializer.save()
         return HttpResponse('good')
 
+    """
     def get(self,request):
         latestdata.checkLHWD()
         filterset=WinddataFilter(request.query_params,queryset=Data.objects.all())
         serializer=UseData(instance=filterset.qs,many=True)
         return Response(serializer.data)
+    """
 
 
-class FWD(APIView):
+class FilterdWD(APIView):
     # filterd wind data
     def get(self,request):
         qs=request.query_params
         try:
+            
             datetime_rangea_split=qs["datetime_range"].split(',')
             print(datetime_rangea_split)
             dt_form="%Y-%m-%dT%H:%M:%S"
@@ -144,8 +147,12 @@ class FWD(APIView):
             print("start:",start_date,"end:",end_date)
             row_objects=list(Data.objects.filter(Time__range=(start_date,end_date)).values())
             return Response(row_objects)
-        except ValueError:
-            return HttpResponse("error")
+        except ValueError as e:
+            print("ERROR recipted parameter is not valid type",e)
+            return HttpResponse("ERROR recipted parameter is not valid type",e)
+        except KeyError as e:
+            print("ERROR  no specified datetime parameter",e)
+            return HttpResponse("ERROR  no specified datetime parameter",e)
  
 class LHWD(APIView):
     def get(self,request):
