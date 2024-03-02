@@ -196,7 +196,7 @@ class DHCP(APIView):
 
 class Token(APIView):
     def get(self,request):
-        return Response(json.dumps({"Token":str(latestdata.createToken())}))
+        return Response({"Token":str(latestdata.createToken())})
 
 
 class test(APIView):
