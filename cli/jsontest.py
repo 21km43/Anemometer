@@ -23,10 +23,18 @@ headers = {'Content-type': 'application/json',}
 while(True):
 
     res=sess.get('http://localhost:8000/data/token/')
-    giventoken=eval(json.loads(res.text))["Token"]
+    giventoken=eval(json.loads(json.dumps(res.text)))["Token"]
 
     min=int(datetime.datetime.now().strftime('%M'))
-    prm = {"WindSpeed":str(sinwind(min)),"AID":"1","Time":str(datetime.datetime.now()),"EmcriptedToken":str(hashlib.sha256((giventoken+"123").encode()).hexdigest())}
+    prm = {
+        "WindSpeed":str(sinwind(min)),
+        "WindDirection":"0",
+        "Longitude":"0",
+        "Latitude":"0",
+        "Memo":"滑走路　南",
+        "AID":"1",
+        "Time":str(datetime.datetime.now()),
+        "EmcriptedToken":str(hashlib.sha256((giventoken+"123").encode()).hexdigest())}
     params = json.dumps(prm)
     res = sess.post(url, data=params, headers=headers)
     # 戻り値を表示

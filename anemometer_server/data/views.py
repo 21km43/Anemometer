@@ -31,14 +31,21 @@ class LatestData():
 
     def syntax_check(self,givendata):
         data=json.loads(givendata)
-        if 'WindSpeed' in data and 'Time' in data and 'AID' in data and 'EmcriptedToken' in data:
+        if 'WindSpeed' in data and 'WindDirection' in data and 'Time' in data and 'AID' in data and 'EmcriptedToken' in data and 'Latitude' in data and 'Longitude' in data and 'Memo' in data:
             return True
         else:
             return False
 
     def updateLHWD(self,givendata): 
         data=json.loads(givendata)
-        data={"WindSpeed":data["WindSpeed"],"Time":datetime.datetime.strptime(data["Time"],"%Y-%m-%d %H:%M:%S.%f"),"AID":data["AID"]}
+        data={
+            "WindSpeed":data["WindSpeed"],
+            "WindDirection":data["WindDirection"],
+            "Latitude":data["Latitude"],
+            "Longitude":data["Longitude"],
+            "Memo":data["Memo"],
+            "Time":datetime.datetime.strptime(data["Time"],"%Y-%m-%d %H:%M:%S.%f"),
+            "AID":data["AID"]}
         self.LHWD.append(data)
     
     def updateAnemometer(self,givendata):
