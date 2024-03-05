@@ -31,7 +31,8 @@ class LatestData():
 
     def syntax_check(self,givendata):
         data=json.loads(givendata)
-        if 'WindSpeed' in data and 'WindDirection' in data and 'Time' in data and 'AID' in data and 'EmcriptedToken' in data and 'Latitude' in data and 'Longitude' in data and 'Memo' in data:
+        #if 'WindSpeed' in data and 'WindDirection' in data and 'Time' in data and 'AID' in data and 'EmcriptedToken' in data and 'Latitude' in data and 'Longitude' in data and 'Memo' in data:
+        if 'WindSpeed' in data and 'WindDirection' in data and 'AID' in data and 'EmcriptedToken' in data and 'Latitude' in data and 'Longitude' in data and 'Memo' in data:
             return True
         else:
             return False
@@ -124,13 +125,28 @@ class WinddataAPIView(APIView):
             return HttpResponse("Syntax Error")
         if not latestdata.auth(json.loads(request.body.decode('utf-8'))['EmcriptedToken']):
             return HttpResponse("Authentication Error")
+
+        #データ時刻をサーバータイムに変更
+        js_body=json.loads(request.body)
+        js_body["Time"]=str(datetime.datetime.now())
+        modifed_body=str(json.dumps(js_body)).encode('utf-8')
+        modifed_data=dict(js_body)
+
+
+        latestdata.updateLHWD(modifed_body)
+        latestdata.updateAnemometer(modifed_body)
+        DataSerializer=UseData(data=modifed_data)
+        DataSerializer.is_valid(raise_exception=True)
+        DataSerializer.save()
+        return HttpResponse('good')
+        """
         latestdata.updateLHWD(request.body)
         latestdata.updateAnemometer(request.body)
         DataSerializer=UseData(data=request.data)
         DataSerializer.is_valid(raise_exception=True)
         DataSerializer.save()
         return HttpResponse('good')
-
+        """
     """
     def get(self,request):
         latestdata.checkLHWD()
