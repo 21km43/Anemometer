@@ -6,6 +6,5 @@ class FlightdataConfig(AppConfig):
     name = 'flightdata'
 
     def ready(self):
-        print("redy")
         from .views import start
         start()

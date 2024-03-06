@@ -28,7 +28,6 @@ class LatestData():
     
 
 fetch_fd=False
-fetch_fd=True
 latestdata=LatestData()
 
 def get():
@@ -38,12 +37,11 @@ def get():
     json_data=json.loads(get.text)
     json_data['Time']=datetime.datetime.now()
     latestdata.updateLHWD(json_data)
-    print("update")
 
 def start():
    scheduler=BackgroundScheduler()
 
-   scheduler.add_job(get,'interval',seconds=5)
+   scheduler.add_job(get,'interval',seconds=0.5)
    scheduler.start()
 
 
@@ -52,3 +50,16 @@ class LHWD(APIView):
     def get(self,response):
         latestdata.checkLHWD()
         return Response(latestdata.LHWD)
+
+class LD(APIView):
+    def get(self,response):
+        if len(latestdata.LHWD) == 0:
+            return Response([])
+        ld_last=latestdata.LHWD[0]
+        is_there_data=False
+        for item in latestdata.LHWD:
+            if ld_last['Time']<item['Time'] and item['Time']>(datetime.datetime.now()-datetime.timedelta(seconds=120)):
+                ld_last=item
+                is_there_data=True
+        if is_there_data:return Response(ld_last)
+        else: return Response([])
