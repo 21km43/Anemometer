@@ -20,4 +20,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path(r'data/',include("data.urls")),
     path(r'',include("frontend.urls")),
+    path(r'flightdata/',include("flightdata.urls")),
 ]
