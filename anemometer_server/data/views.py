@@ -1,4 +1,7 @@
 from django.shortcuts import render
+import hashlib
+import hmac
+import base64
 
 # Create your views here.
 
@@ -16,12 +19,12 @@ from .serializers import UseData
 
 #TZ = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
 
+secretKey = base64.b64decode(open('private_key', 'r').read()) # 共通鍵
 
 class LatestData():
     LHWD=[]#WindSpeed:,Time:(datetime型),AID
     Anemometer=[]#AID,Status,LastUpdate(datetime型)
     allKeys=[123,456,789]
-    EmncriptedToken=[]
 
     def DataInit(self):#DBから過去データ抽出
         LHWD_query_set=Data.objects.all()
@@ -31,8 +34,8 @@ class LatestData():
 
     def syntax_check(self,givendata):
         data=json.loads(givendata)
-        #if 'WindSpeed' in data and 'WindDirection' in data and 'Time' in data and 'AID' in data and 'EmcriptedToken' in data and 'Latitude' in data and 'Longitude' in data and 'Memo' in data:
-        if 'WindSpeed' in data and 'WindDirection' in data and 'AID' in data and 'EmcriptedToken' in data and 'Latitude' in data and 'Longitude' in data and 'Memo' in data:
+        #if 'WindSpeed' in data and 'WindDirection' in data and 'Time' in data and 'AID' in data and 'Latitude' in data and 'Longitude' in data and 'Memo' in data:
+        if 'WindSpeed' in data and 'WindDirection' in data and 'AID' in data and 'Latitude' in data and 'Longitude' in data and 'Memo' in data:
             return True
         else:
             return False
@@ -87,26 +90,13 @@ class LatestData():
             if flag:return {"AID":i+1}
         print('DHCP error')
 
-    def createToken(self):
-        Token=random.randint(0,100000)
-        et=[]
-        for key in self.allKeys:
-            et.append(hashlib.sha256((str(Token)+str(key)).encode()).hexdigest())
-        self.EmncriptedToken.append(et)
-        #print(self.EmncriptedToken)
-        return Token
-
-    def auth(self,EnToken):
-        auth=False
-        for i in range(len(self.EmncriptedToken)):
-            for et in self.EmncriptedToken[i]:
-                #print(et," ",EnToken,"does not match")
-                if et==EnToken:
-                    auth=True
-                    tokenid=i
-        if(auth):self.EmncriptedToken.remove(self.EmncriptedToken[tokenid])
-        #print(self.EmncriptedToken)
-        return auth
+    # HMAC-SHA256（BASE64符号）で認証
+    def auth(self, payload, HMAC):
+        signature = hmac.new(key=secretKey, msg=payload, digestmod=hashlib.sha256).digest()
+        signature_base64 = base64.b64encode(signature).decode()
+        print(signature_base64)
+        print(HMAC)
+        return signature_base64 == HMAC
 
 
 latestdata=LatestData() 
@@ -123,7 +113,7 @@ class WinddataAPIView(APIView):
     def post(self,request):
         if not latestdata.syntax_check(request.body):
             return HttpResponse("Syntax Error")
-        if not latestdata.auth(json.loads(request.body.decode('utf-8'))['EmcriptedToken']):
+        if not latestdata.auth(request.body, request.headers.get('Authorization')):
             return HttpResponse("Authentication Error")
 
         #データ時刻をサーバータイムに変更
@@ -215,12 +205,6 @@ class DHCP(APIView):
     def get(self,request):
         latestdata.checkAnemometer()
         return Response(latestdata.DHCP())
-    
-
-class Token(APIView):
-    def get(self,request):
-        return Response({"Token":str(latestdata.createToken())})
-
 
 class test(APIView):
     def post(self,request):
