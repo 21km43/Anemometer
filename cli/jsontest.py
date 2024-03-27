@@ -13,13 +13,10 @@ def sinwind(min):
 
 url = "http://localhost:8000/data/create/"  
 sess = requests.session()
-
+secretKey = base64.b64decode(open('../anemometer_server/private_key', 'r').read()) # 共通鍵
 
 # POST送信
 while(True):
-
-    res=sess.get('http://localhost:8000/data/token/')
-    giventoken=eval(json.loads(json.dumps(res.text)))["Token"]
 
     min=int(datetime.datetime.now().strftime('%M'))
     prm = {
@@ -32,10 +29,10 @@ while(True):
         "Time":str(datetime.datetime.now())}
     params = json.dumps(prm)
     # HMAC-SHA256（BASE64符号）を計算
-    signature = hmac.new(b'123', params, hashlib.sha256).hexdigest()
+    signature = hmac.new(key=secretKey, msg=params.encode("utf-8"), digestmod=hashlib.sha256).digest()
     signature_base64 = base64.b64encode(signature).decode()
     # HTTPヘッダ
-    headers = {'Content-type': 'application/json', 'Autherization': signature_base64}
+    headers = {'Content-type': 'application/json', 'Authorization': signature_base64}
     res = sess.post(url, data=params, headers=headers)
     # 戻り値を表示
     print("--return body-----")

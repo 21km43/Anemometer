@@ -19,6 +19,7 @@ from .serializers import UseData
 
 #TZ = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
 
+secretKey = base64.b64decode(open('private_key', 'r').read()) # 共通鍵
 
 class LatestData():
     LHWD=[]#WindSpeed:,Time:(datetime型),AID
@@ -91,9 +92,11 @@ class LatestData():
 
     # HMAC-SHA256（BASE64符号）で認証
     def auth(self, payload, HMAC):
-        secretKey = b'123'
-        signature = hmac.new(secretKey, payload, hashlib.sha256).hexdigest()
-        return base64.b64encode(signature).decode() == HMAC
+        signature = hmac.new(key=secretKey, msg=payload, digestmod=hashlib.sha256).digest()
+        signature_base64 = base64.b64encode(signature).decode()
+        print(signature_base64)
+        print(HMAC)
+        return signature_base64 == HMAC
 
 
 latestdata=LatestData() 
