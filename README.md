@@ -5,3 +5,9 @@ anemometer_serverのディレクトリで32Byteの鍵をBase64として出力し
 ```bash
 openssl rand -base64 32 > private_key
 ```
+
+### Start 
+```bash
+chmod +x init.sh
+./init.sh
+```
