@@ -5,6 +5,7 @@ services:
       - "8000:8000"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d/grafana.conf:/etc/nginx/conf.d/grafana.conf
       - ./nginx/uwsgi_params:/etc/nginx/uwsgi_params
       - ./static:/static
     depends_on:
