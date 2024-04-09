@@ -27,9 +27,12 @@ class LatestData():
     allKeys=[123,456,789]
 
     def DataInit(self):#DBから過去データ抽出
-        #LHWD_query_set=Data.objects.all()
-        #self.LHWD=list(LHWD_query_set.values())
-        #self.checkLHWD()
+        try:
+            LHWD_query_set=Data.objects.all()
+            self.LHWD=list(LHWD_query_set.values())
+        except:
+            print('Get Data Error')
+        self.checkLHWD()
         print('latestdata init')
 
     def syntax_check(self,givendata):

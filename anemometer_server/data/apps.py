@@ -6,6 +6,5 @@ class DataConfig(AppConfig):
     name = 'data'
 
     def ready(self):
-        print("aaaaaaa")
         from .views import latestdata
         latestdata.DataInit()
