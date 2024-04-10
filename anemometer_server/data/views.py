@@ -19,7 +19,7 @@ from .serializers import UseData
 
 #TZ = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
 
-secretKey = base64.b64decode(open('private_key', 'r').read()) # 共通鍵
+secretKey = hashlib.sha256(open('private_key', 'r').read()).digest() # 共通鍵
 
 class LatestData():
     LHWD=[]#WindSpeed:,Time:(datetime型),AID
