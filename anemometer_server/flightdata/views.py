@@ -43,7 +43,6 @@ fetch_fd=True
 latestdata=LatestData()
 
 def get():
-    print("start to getting")
     if not fetch_fd:
         return 0
     get=sess.get(url) 
@@ -52,7 +51,6 @@ def get():
     f=open(getdata_filepath,mode='a')
     f.write(json.dumps(json_data)+"\n")
     f.close()
-    print("update")
     
 
 def start():
