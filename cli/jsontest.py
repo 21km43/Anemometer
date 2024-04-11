@@ -13,7 +13,7 @@ def sinwind(min):
 
 url = "http://localhost:8000/data/create/"  
 sess = requests.session()
-secretKey = base64.b64decode(open('../anemometer_server/private_key', 'r').read()) # 共通鍵
+secretKey = hashlib.sha256(open('../anemometer_server/private_key', 'r').read().encode()).digest() # 共通鍵
 
 # POST送信
 while(True):
