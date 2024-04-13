@@ -6,6 +6,7 @@ import datetime
 import hashlib
 import hmac
 import base64
+import pathlib
 
 def sinwind(min):
     return 5*(np.sin(min/60*2*np.pi)+1)
@@ -13,7 +14,7 @@ def sinwind(min):
 
 url = "http://localhost:8000/data/create/"  
 sess = requests.session()
-secretKey = hashlib.sha256(open('../anemometer_server/private_key', 'r').read().encode()).digest() # 共通鍵
+secretKey = hashlib.sha256(open(pathlib.Path('../anemometer_server/private_key'), 'r').read().encode()).digest() # 共通鍵
 
 # POST送信
 while(True):
