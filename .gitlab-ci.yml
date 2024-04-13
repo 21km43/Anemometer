@@ -6,7 +6,6 @@ pwd:
   script:
     - pwd
     - ls -al
-    - cd /var/www/anemometer
     - git pull
     - docker compose down
     - ./init.sh
