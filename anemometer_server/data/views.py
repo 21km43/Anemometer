@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from http import HTTPStatus
 import hashlib
 import hmac
 import base64
@@ -115,9 +116,9 @@ class WinddataAPIView(APIView):
 
     def post(self,request):
         if not latestdata.syntax_check(request.body):
-            return HttpResponse("Syntax Error")
+            return HttpResponse("Syntax Error", status=HTTPStatus.BAD_REQUEST)
         if not latestdata.auth(request.body, request.headers.get('Authorization')):
-            return HttpResponse("Authentication Error")
+            return HttpResponse("Authentication Error", status=HTTPStatus.UNAUTHORIZED)
 
         #データ時刻をサーバータイムに変更
         js_body=json.loads(request.body)
@@ -131,15 +132,7 @@ class WinddataAPIView(APIView):
         DataSerializer=UseData(data=modifed_data)
         DataSerializer.is_valid(raise_exception=True)
         DataSerializer.save()
-        return HttpResponse('good')
-        """
-        latestdata.updateLHWD(request.body)
-        latestdata.updateAnemometer(request.body)
-        DataSerializer=UseData(data=request.data)
-        DataSerializer.is_valid(raise_exception=True)
-        DataSerializer.save()
-        return HttpResponse('good')
-        """
+        return HttpResponse('good', status=HTTPStatus.CREATED)
     """
     def get(self,request):
         latestdata.checkLHWD()
