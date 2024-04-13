@@ -6,7 +6,6 @@ pwd:
   script:
     - pwd
     - ls -al
-    - git pull
     - docker compose down
     - ./init.sh
 
