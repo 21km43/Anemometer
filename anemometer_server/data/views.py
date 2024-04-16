@@ -15,12 +15,17 @@ from django.views.decorators.csrf import csrf_exempt
 
 import datetime,json,random,hashlib
 
-from .models import Data
+from .models import Data,SecretKey
 from .serializers import UseData
 
 #TZ = datetime.timezone(datetime.timedelta(hours=+9), 'JST')
 
-secretKey = hashlib.sha256(open('private_key', 'r').read().encode()).digest() # 共通鍵
+try:
+    secretKey = hashlib.sha256(str(SecretKey.objects.all()[0].Key).encode()).digest()
+    print('INFO: success to get Secret Key from DB')
+except Exception as error:
+    print("ERROR:fail to get Secret Key from DataBase")
+    print(error)
 
 class LatestData():
     LHWD=[]#WindSpeed:,Time:(datetime型),AID
@@ -31,10 +36,10 @@ class LatestData():
         try:
             LHWD_query_set=Data.objects.all()
             self.LHWD=list(LHWD_query_set.values())
+            print('INFO: success to get past data form DB')
         except:
-            print('Get Data Error')
+            print('ERROR:Fail to get past data from DB')
         self.checkLHWD()
-        print('latestdata init')
 
     def syntax_check(self,givendata):
         data=json.loads(givendata)
@@ -50,7 +55,7 @@ class LatestData():
             "WindSpeed":data["WindSpeed"],
             "WindDirection":data["WindDirection"],
             "Latitude":data["Latitude"],
-            "Longitude":data["Longitude"],
+            "Lonitude":data["Longitude"],
             "Memo":data["Memo"],
             "Time":datetime.datetime.strptime(data["Time"],"%Y-%m-%d %H:%M:%S.%f"),
             "AID":data["AID"]}
@@ -96,6 +101,11 @@ class LatestData():
 
     # HMAC-SHA256（BASE64符号）で認証
     def auth(self, payload, HMAC):
+        try:
+            secretKey = hashlib.sha256(str(SecretKey.objects.all()[0].Key).encode()).digest()
+        except Exception as error:
+            print("ERROR:fail to get secretKey from DataBase")
+            print(error)
         signature = hmac.new(key=secretKey, msg=payload, digestmod=hashlib.sha256).digest()
         signature_base64 = base64.b64encode(signature).decode()
         print(signature_base64)

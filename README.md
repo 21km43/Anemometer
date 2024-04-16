@@ -26,3 +26,15 @@ docker compose down
 docker compose build
 docker compse up -d
 ```
+
+
+### 事前共有鍵を設定する
+PSKを設定するためにはDjango管理画面を使用するので、管理ユーザーを作成する
+```bash
+docker compose exec django ./manage.py createsuperuser
+```
+
+http://HOSTNAME/adminにアクセスし、
+DATA＞Secret Keyにて、右上の"Secret Keyを追加"ボタンを押下、任意の文字列を保存する。
+
+現在、管理画面で複数のSecretKeyを保存することができるが、実際に適用されるのは最初に追加した一つだけである。

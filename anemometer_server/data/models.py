@@ -3,6 +3,9 @@ from django.db import models
 from django.utils import timezone
 
 
+class SecretKey(models.Model):
+    Key=models.CharField(max_length=30)
+
 class Data(models.Model):
     WindSpeed=models.FloatField(default=0)
     WindDirection=models.FloatField(default=0)
