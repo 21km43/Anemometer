@@ -44,7 +44,7 @@ class LatestData():
     def syntax_check(self,givendata):
         data=json.loads(givendata)
         #if 'WindSpeed' in data and 'WindDirection' in data and 'Time' in data and 'AID' in data and 'Latitude' in data and 'Longitude' in data and 'Memo' in data:
-        if 'WindSpeed' in data and 'WindDirection' in data and 'AID' in data and 'Latitude' in data and 'Longitude' in data and 'Memo' in data:
+        if 'AID' in data and 'Time' in data and 'data' in data:
             return True
         else:
             return False
@@ -52,11 +52,7 @@ class LatestData():
     def updateLHWD(self,givendata): 
         data=json.loads(givendata)
         data={
-            "WindSpeed":data["WindSpeed"],
-            "WindDirection":data["WindDirection"],
-            "Latitude":data["Latitude"],
-            "Lonitude":data["Longitude"],
-            "Memo":data["Memo"],
+            "data":data['data'],
             "Time":datetime.datetime.strptime(data["Time"],"%Y-%m-%d %H:%M:%S.%f"),
             "AID":data["AID"]}
         self.LHWD.append(data)
@@ -115,12 +111,6 @@ class LatestData():
 
 latestdata=LatestData() 
 
-
-class WinddataFilter(filters.FilterSet):
-    times=filters.DateTimeFilter()
-    class Meta:
-        model=Data
-        fields='__all__'
 
 class WinddataAPIView(APIView):
 

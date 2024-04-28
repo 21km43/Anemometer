@@ -21,11 +21,13 @@ while(True):
 
     min=int(datetime.datetime.now().strftime('%M'))
     prm = {
-        "WindSpeed":str(sinwind(min)),
-        "WindDirection":"0",
-        "Longitude":"0",
-        "Latitude":"0",
-        "Memo":"滑走路　南",
+        "data":{
+            "WindSpeed":str(sinwind(min)),
+            "WindDirection":"0",
+            "Longitude":"0",
+            "Latitude":"0",
+            "Memo":"滑走路　南",
+        },
         "AID":"1",
         "Time":str(datetime.datetime.now())}
     params = json.dumps(prm)
