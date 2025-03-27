@@ -23,7 +23,7 @@ docker compose exec djangp ./manage.py collectstatic --noinput
 docker compose exec django /bin/bash
 python manage.py makemigrations
 python manage.py migrate
-python manage.py createsuperuser
+python manage.py collectstatic --noinput
 exit
 ```
 makemigrationsの途中で求められる値には`{}`を入れる。
