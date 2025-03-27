@@ -6,9 +6,10 @@ chmod +x init.sh
 ```
 
 ### Dockerコマンドで始める
-コンテナを起動する
+コンテナを起動する。もしくは再起動する
 ```bash
 docker compose up -d
+docker compose restart
 ```
 MySQLコンテナが起動するのに時間がかかるので、しばらく待ってからDBマイグレーションを行う
 ```bash
@@ -17,6 +18,15 @@ docker compose exec django ./manage.py makemigrations
 docker compose exec django ./manage.py migrate
 docker compose exec djangp ./manage.py collectstatic --noinput
 ```
+代替コマンド
+```bash
+docker compose exec django /bin/bash
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+exit
+```
+makemigrationsの途中で求められる値には`{}`を入れる。
 
 ### 設定ファイルなどの変更を適用する
 Volumeで紐づけられているソースコードなどはファイルを保存しただけで変更される
@@ -24,7 +34,7 @@ Volumeで紐づけられているソースコードなどはファイルを保�
 ```bash
 docker compose down
 docker compose build
-docker compse up -d
+docker compose up -d
 ```
 
 
