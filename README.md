@@ -18,7 +18,7 @@ docker compose exec django ./manage.py makemigrations
 docker compose exec django ./manage.py migrate
 docker compose exec djangp ./manage.py collectstatic --noinput
 ```
-代替コマンド
+Windowsの場合のコマンドは次のようになる
 ```bash
 docker compose exec django /bin/bash
 python manage.py makemigrations
@@ -42,6 +42,11 @@ docker compose up -d
 PSKを設定するためにはDjango管理画面を使用するので、管理ユーザーを作成する
 ```bash
 docker compose exec django ./manage.py createsuperuser
+```
+Windowsの場合次の通り
+```
+docker compose exec django /bin/bash
+python manage.py createsuperuser
 ```
 
 http://HOSTNAME/adminにアクセスし、
