@@ -26,7 +26,7 @@ python manage.py migrate
 python manage.py collectstatic --noinput
 exit
 ```
-makemigrationsの途中で求められる値には`{}`を入れる。
+makemigrationsの途中でdefaultの値を求められた場合`{}`とする。
 
 ### 設定ファイルなどの変更を適用する
 Volumeで紐づけられているソースコードなどはファイルを保存しただけで変更される
